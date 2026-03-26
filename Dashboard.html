@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard — Tu Antojito Mix 🍭</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pink:#FF006E; --yellow:#FFBE0B; --blue:#3A86FF;
+  --green:#06D6A0; --purple:#8338EC; --orange:#FB5607;
+  --red:#EF233C; --dark:#1a0a2e; --bg:#0f051e; --panel:#1e0d36;
+  --border:rgba(255,255,255,.08); --text-m:rgba(255,255,255,.6);
+  --trans:all .25s cubic-bezier(.4,0,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:#fff;min-height:100vh;display:flex}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,0,110,.4);border-radius:3px}
+
+/* ── Sidebar ───────────────────────────────────────── */
+.sidebar{width:250px;background:var(--panel);border-right:2px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-head{padding:24px 20px;border-bottom:2px solid var(--border)}
+.sidebar-logo{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.sidebar-logo img{width:46px;height:46px;border-radius:50%;border:3px solid var(--yellow);object-fit:cover}
+.sidebar-title{font-family:'Fredoka One',cursive;font-size:18px;color:#fff;line-height:1.1}
+.sidebar-title em{color:var(--yellow)}
+.sidebar-sub{font-size:11px;color:var(--text-m);font-weight:700}
+.sidebar-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,190,11,.15);border:1px solid rgba(255,190,11,.4);color:var(--yellow);padding:5px 12px;border-radius:100px;font-size:11px;font-weight:800;margin-top:10px}
+.sidebar-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.nav-section{padding:14px 12px 6px;font-size:10px;font-weight:800;color:var(--text-m);text-transform:uppercase;letter-spacing:1px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:14px;cursor:pointer;transition:var(--trans);margin:2px 8px;font-size:14px;font-weight:700;color:var(--text-m)}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-item.active{background:linear-gradient(135deg,rgba(255,0,110,.25),rgba(131,56,236,.2));color:#fff;border:1px solid rgba(255,0,110,.3)}
+.nav-item .ni-icon{font-size:20px;width:26px;text-align:center}
+.sidebar-footer{margin-top:auto;padding:16px;border-top:2px solid var(--border);font-size:11px;color:var(--text-m);text-align:center;font-weight:700}
+
+/* ── Main ──────────────────────────────────────────── */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.topbar{padding:18px 28px;border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(30,13,54,.8);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100}
+.topbar-left{display:flex;flex-direction:column}
+.topbar-title{font-family:'Fredoka One',cursive;font-size:22px;color:#fff}
+.topbar-sub{font-size:12px;color:var(--text-m);font-weight:700;margin-top:2px}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.refresh-btn{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--pink),var(--purple));border:none;color:#fff;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;transition:var(--trans);font-family:'Nunito',sans-serif}
+.refresh-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,0,110,.4)}
+.refresh-btn.spin svg{animation:spinIcon .8s linear infinite}
+@keyframes spinIcon{to{transform:rotate(360deg)}}
+
+/* ── Content ───────────────────────────────────────── */
+.content{padding:28px;flex:1}
+.page{display:none}
+.page.active{display:block}
+
+/* ── KPI Cards ─────────────────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin-bottom:28px}
+.kpi{border-radius:20px;padding:22px 24px;position:relative;overflow:hidden;cursor:default;transition:var(--trans)}
+.kpi:hover{transform:translateY(-4px)}
+.kpi.kpi-pink{background:linear-gradient(135deg,rgba(255,0,110,.3),rgba(251,86,7,.2));border:2px solid rgba(255,0,110,.35)}
+.kpi.kpi-yellow{background:linear-gradient(135deg,rgba(255,190,11,.3),rgba(251,86,7,.2));border:2px solid rgba(255,190,11,.35)}
+.kpi.kpi-blue{background:linear-gradient(135deg,rgba(58,134,255,.3),rgba(131,56,236,.2));border:2px solid rgba(58,134,255,.35)}
+.kpi.kpi-green{background:linear-gradient(135deg,rgba(6,214,160,.3),rgba(58,134,255,.2));border:2px solid rgba(6,214,160,.35)}
+.kpi.kpi-purple{background:linear-gradient(135deg,rgba(131,56,236,.3),rgba(255,0,110,.2));border:2px solid rgba(131,56,236,.35)}
+.kpi-icon{font-size:36px;margin-bottom:12px}
+.kpi-label{font-size:12px;font-weight:800;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.kpi-val{font-family:'Fredoka One',cursive;font-size:32px;color:#fff;line-height:1}
+.kpi-val small{font-size:16px;font-family:'Nunito',sans-serif;font-weight:700}
+.kpi-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:6px;font-weight:700}
+
+/* ── Orders estado ─────────────────────────────────── */
+.estados-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+.est-card{border-radius:16px;padding:16px;text-align:center;border:2px solid}
+.est-card.ec-pend{background:rgba(255,190,11,.1);border-color:rgba(255,190,11,.3)}
+.est-card.ec-acep{background:rgba(6,214,160,.1);border-color:rgba(6,214,160,.3)}
+.est-card.ec-env{background:rgba(58,134,255,.1);border-color:rgba(58,134,255,.3)}
+.est-card.ec-canc{background:rgba(239,35,60,.1);border-color:rgba(239,35,60,.3)}
+.ec-icon{font-size:28px;margin-bottom:8px}
+.ec-num{font-family:'Fredoka One',cursive;font-size:28px;color:#fff}
+.ec-lbl{font-size:11px;font-weight:800;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px}
+
+/* ── Panels ────────────────────────────────────────── */
+.panel{background:var(--panel);border-radius:20px;border:2px solid var(--border);overflow:hidden;margin-bottom:24px}
+.panel-head{padding:18px 22px;border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-head h3{font-family:'Fredoka One',cursive;font-size:18px;color:#fff}
+.panel-sub{font-size:12px;color:var(--text-m);font-weight:700}
+.panel-body{padding:0}
+
+/* ── Table ─────────────────────────────────────────── */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{padding:12px 16px;text-align:left;font-size:11px;font-weight:800;color:var(--text-m);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--border)}
+.tbl td{padding:14px 16px;border-bottom:1px solid var(--border);color:rgba(255,255,255,.85);font-weight:700;vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.03)}
+/* Estado badges */
+.badge-estado{padding:5px 12px;border-radius:100px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:5px}
+.be-pendiente{background:rgba(255,190,11,.15);color:var(--yellow);border:1px solid rgba(255,190,11,.4)}
+.be-aceptado{background:rgba(6,214,160,.15);color:var(--green);border:1px solid rgba(6,214,160,.4)}
+.be-encamino{background:rgba(58,134,255,.15);color:var(--blue);border:1px solid rgba(58,134,255,.4)}
+.be-entregado{background:rgba(131,56,236,.15);color:#b988ff;border:1px solid rgba(131,56,236,.4)}
+.be-cancelado{background:rgba(239,35,60,.15);color:#ff7b8a;border:1px solid rgba(239,35,60,.4)}
+/* Select estado */
+.sel-estado{background:var(--bg);border:2px solid var(--border);border-radius:10px;color:#fff;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;outline:none;transition:var(--trans)}
+.sel-estado:hover{border-color:var(--pink)}
+/* Curso chip */
+.curso-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(255,190,11,.15);border:1px solid rgba(255,190,11,.3);color:var(--yellow);padding:3px 10px;border-radius:100px;font-size:11px;font-weight:800}
+/* Stock badge */
+.stk-ok{color:var(--green);font-weight:800}
+.stk-low{color:var(--yellow);font-weight:800}
+.stk-out{color:var(--pink);font-weight:800}
+/* Restock btn */
+.restock-btn{background:linear-gradient(135deg,var(--blue),var(--purple));border:none;color:#fff;padding:6px 14px;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;transition:var(--trans);font-family:'Nunito',sans-serif}
+.restock-btn:hover{transform:scale(1.05)}
+
+/* ── Stock crítico banner ───────────────────────────── */
+.alert-banner{background:linear-gradient(135deg,rgba(239,35,60,.2),rgba(255,0,110,.1));border:2px solid rgba(239,35,60,.4);border-radius:16px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px}
+.alert-banner .ab-icon{font-size:28px}
+.alert-banner .ab-text{font-weight:800;font-size:14px;color:#fff}
+.alert-banner .ab-sub{font-size:12px;color:rgba(255,255,255,.65);margin-top:3px;font-weight:700}
+
+/* ── RRSS Stats ────────────────────────────────────── */
+.rrss-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;padding:20px}
+.rrss-card{border-radius:18px;padding:22px;text-align:center;transition:var(--trans);cursor:pointer}
+.rrss-card:hover{transform:translateY(-4px)}
+.rrss-card.rr-tiktok{background:linear-gradient(135deg,#010101,#69C9D0);border:2px solid rgba(105,201,208,.3)}
+.rrss-card.rr-ig{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);border:2px solid rgba(220,39,67,.4)}
+.rrss-card.rr-wa{background:linear-gradient(135deg,#25D366,#128C7E);border:2px solid rgba(37,211,102,.4)}
+.rrss-card.rr-general{background:linear-gradient(135deg,rgba(255,0,110,.25),rgba(131,56,236,.2));border:2px solid rgba(255,0,110,.3)}
+.rr-icon{font-size:44px;margin-bottom:12px}
+.rr-name{font-family:'Fredoka One',cursive;font-size:18px;color:#fff;margin-bottom:6px}
+.rr-tips{font-size:12px;color:rgba(255,255,255,.75);line-height:1.5;font-weight:600}
+.rr-link{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.2);border:none;color:#fff;padding:8px 16px;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;margin-top:12px;text-decoration:none;transition:var(--trans);font-family:'Nunito',sans-serif}
+.rr-link:hover{background:rgba(255,255,255,.3)}
+
+/* ── Tips ─────────────────────────────────────────── */
+.tips-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;padding:20px}
+.tip-card{background:rgba(255,255,255,.04);border:2px solid var(--border);border-radius:16px;padding:20px}
+.tip-card h4{font-family:'Fredoka One',cursive;font-size:16px;color:var(--yellow);margin-bottom:10px}
+.tip-card ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.tip-card ul li{font-size:13px;color:rgba(255,255,255,.75);font-weight:700;padding-left:20px;position:relative}
+.tip-card ul li::before{content:'✨';position:absolute;left:0;font-size:11px}
+
+/* ── Empty / loading ───────────────────────────────── */
+.loading-row{text-align:center;padding:40px;color:var(--text-m);font-weight:700;font-size:14px}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-m)}
+.empty-state .emo{font-size:56px;margin-bottom:14px}
+.empty-state p{font-weight:700;font-size:14px}
+
+/* ── Toast ─────────────────────────────────────────── */
+#toasts{position:fixed;top:20px;right:20px;z-index:9000;display:flex;flex-direction:column;gap:10px}
+.toast{display:flex;align-items:center;gap:10px;background:var(--panel);color:#fff;padding:14px 20px;border-radius:16px;font-size:14px;font-weight:800;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideIn .3s ease;max-width:300px}
+.toast.ok{border-left:5px solid var(--green)}
+.toast.err{border-left:5px solid var(--pink)}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ── Responsive ────────────────────────────────────── */
+@media(max-width:900px){
+  .sidebar{width:200px}
+  .estados-strip{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:640px){
+  body{flex-direction:column}
+  .sidebar{width:100%;height:auto;position:relative;flex-direction:row;flex-wrap:wrap;overflow-x:auto}
+  .sidebar-head{padding:12px 16px}
+  .main{min-height:auto}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .estados-strip{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-head">
+    <div class="sidebar-logo">
+      <img src="https://i.postimg.cc/CLg9RQz4/Logo-Mix.png" alt="Logo" onerror="this.style.display='none'">
+      <div>
+        <div class="sidebar-title"><em>Tu Antojito</em> Mix</div>
+        <div class="sidebar-sub">Panel de Administración</div>
+      </div>
+    </div>
+    <div class="sidebar-badge"><span class="dot"></span> En línea</div>
+  </div>
+
+  <div class="nav-section">Principal</div>
+  <div class="nav-item active" onclick="navTo('overview',this)"><span class="ni-icon">📊</span> Resumen</div>
+  <div class="nav-item" onclick="navTo('pedidos',this)"><span class="ni-icon">🛒</span> Pedidos</div>
+  <div class="nav-item" onclick="navTo('catalogo',this)"><span class="ni-icon">🍪</span> Catálogo</div>
+
+  <div class="nav-section">Marketing</div>
+  <div class="nav-item" onclick="navTo('rrss',this)"><span class="ni-icon">📲</span> Redes Sociales</div>
+
+  <div class="sidebar-footer">🍭 Tu Antojito Mix © 2025</div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title" id="pageTitle">📊 Resumen del Día</div>
+      <div class="topbar-sub" id="pageSub">Métricas y pedidos recientes</div>
+    </div>
+    <div class="topbar-right">
+      <button class="refresh-btn" id="refreshBtn" onclick="loadDashboard()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <!-- TOASTS -->
+    <div id="toasts"></div>
+
+    <!-- ── Overview ────────────────────── -->
+    <div class="page active" id="page-overview">
+      <div class="kpi-grid" id="kpiGrid">
+        <div class="kpi kpi-pink"><div class="kpi-icon">💰</div><div class="kpi-label">Ventas del Mes</div><div class="kpi-val" id="kpiVentas"><small>Cargando…</small></div><div class="kpi-sub">CLP acumulado</div></div>
+        <div class="kpi kpi-yellow"><div class="kpi-icon">📦</div><div class="kpi-label">Total Pedidos</div><div class="kpi-val" id="kpiPedidos">—</div><div class="kpi-sub">Todos los tiempos</div></div>
+        <div class="kpi kpi-blue"><div class="kpi-icon">⏳</div><div class="kpi-label">Pendientes</div><div class="kpi-val" id="kpiPendientes">—</div><div class="kpi-sub">Por atender ahora</div></div>
+        <div class="kpi kpi-green"><div class="kpi-icon">🎉</div><div class="kpi-label">Entregados</div><div class="kpi-val" id="kpiEntregados">—</div><div class="kpi-sub">Pedidos completados</div></div>
+      </div>
+
+      <div class="estados-strip">
+        <div class="est-card ec-pend"><div class="ec-icon">⏳</div><div class="ec-num" id="stPend">—</div><div class="ec-lbl">Pendientes</div></div>
+        <div class="est-card ec-acep"><div class="ec-icon">✅</div><div class="ec-num" id="stAcep">—</div><div class="ec-lbl">Aceptados</div></div>
+        <div class="est-card ec-env"><div class="ec-icon">🛵</div><div class="ec-num" id="stCam">—</div><div class="ec-lbl">En camino</div></div>
+        <div class="est-card ec-canc"><div class="ec-icon">❌</div><div class="ec-num" id="stCanc">—</div><div class="ec-lbl">Cancelados</div></div>
+      </div>
+
+      <!-- Stock crítico -->
+      <div id="stockCriticoAlert" style="display:none">
+        <div class="alert-banner">
+          <div class="ab-icon">⚠️</div>
+          <div>
+            <div class="ab-text">¡Stock bajo en algunos productos!</div>
+            <div class="ab-sub" id="stockCriticoList">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Últimos pedidos -->
+      <div class="panel">
+        <div class="panel-head">
+          <div><h3>🛒 Últimos Pedidos</h3><div class="panel-sub">Los 15 más recientes</div></div>
+        </div>
+        <div class="panel-body">
+          <div style="overflow-x:auto">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>ID Pedido</th>
+                  <th>Cliente</th>
+                  <th>Curso</th>
+                  <th>Fecha</th>
+                  <th>Total</th>
+                  <th>Pago</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="pedidosBody">
+                <tr><td colspan="8" class="loading-row">⏳ Cargando pedidos…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Pedidos ──────────────────────── -->
+    <div class="page" id="page-pedidos">
+      <div class="panel">
+        <div class="panel-head">
+          <div><h3>📋 Todos los Pedidos</h3><div class="panel-sub">Gestiona y actualiza estados</div></div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <select id="filtroEstado" style="background:var(--bg);border:2px solid var(--border);border-radius:10px;color:#fff;padding:8px 12px;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;outline:none" onchange="filtrarPedidos()">
+              <option value="">Todos</option>
+              <option value="Pendiente">⏳ Pendientes</option>
+              <option value="Aceptado">✅ Aceptados</option>
+              <option value="En camino">🛵 En camino</option>
+              <option value="Entregado">🎁 Entregados</option>
+              <option value="Cancelado">❌ Cancelados</option>
+            </select>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div style="overflow-x:auto">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Cliente</th>
+                  <th>Curso & Sección</th>
+                  <th>Delivery</th>
+                  <th>Detalle</th>
+                  <th>Total</th>
+                  <th>Pago</th>
+                  <th>Estado</th>
+                  <th>Cambiar</th>
+                </tr>
+              </thead>
+              <tbody id="allPedidosBody">
+                <tr><td colspan="9" class="loading-row">⏳ Cargando…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Catálogo ─────────────────────── -->
+    <div class="page" id="page-catalogo">
+      <div class="panel">
+        <div class="panel-head">
+          <div><h3>🍪 Catálogo de Productos</h3><div class="panel-sub">Stock y gestión de inventario</div></div>
+        </div>
+        <div class="panel-body">
+          <div style="overflow-x:auto">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Categoría</th>
+                  <th>Precio</th>
+                  <th>Stock</th>
+                  <th>Estado</th>
+                  <th>Reabastecer</th>
+                </tr>
+              </thead>
+              <tbody id="catalogoBody">
+                <tr><td colspan="6" class="loading-row">⏳ Cargando catálogo…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RRSS ─────────────────────────── -->
+    <div class="page" id="page-rrss">
+      <div class="panel" style="margin-bottom:24px">
+        <div class="panel-head">
+          <div><h3>📲 Canales de Redes Sociales</h3><div class="panel-sub">Herramientas y estrategias para crecer</div></div>
+        </div>
+        <div class="rrss-grid">
+          <div class="rrss-card rr-tiktok">
+            <div class="rr-icon">🎵</div>
+            <div class="rr-name">TikTok</div>
+            <div class="rr-tips">Principal canal de los jóvenes. Sube videos cortos del proceso, unboxings, reacciones y memes de los snacks</div>
+            <a href="https://www.tiktok.com" target="_blank" class="rr-link">Abrir TikTok →</a>
+          </div>
+          <div class="rrss-card rr-ig">
+            <div class="rr-icon">📸</div>
+            <div class="rr-name">Instagram</div>
+            <div class="rr-tips">Stories diarios con los productos del día, Reels virales y encuestas para elegir el próximo snack del menú</div>
+            <a href="https://www.instagram.com" target="_blank" class="rr-link">Abrir Instagram →</a>
+          </div>
+          <div class="rrss-card rr-wa">
+            <div class="rr-icon">💬</div>
+            <div class="rr-name">WhatsApp</div>
+            <div class="rr-tips">Canal de pedidos y soporte. Crea un grupo o canal de difusión para anunciar el menú del día cada mañana</div>
+            <a href="https://wa.me/56987201835" target="_blank" class="rr-link">Abrir WhatsApp →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div><h3>💡 Tips de Contenido para Gen Z</h3><div class="panel-sub">Estrategias que funcionan para tu audiencia escolar</div></div>
+        </div>
+        <div class="tips-grid">
+          <div class="tip-card">
+            <h4>🎵 TikTok — Qué subir</h4>
+            <ul>
+              <li>Video "Probando snacks nuevos del recreo"</li>
+              <li>ASMR abriendo paquetes de Doritos/Oreo</li>
+              <li>"POV: te piden el antojito en clases" 😂</li>
+              <li>Ranking de snacks con compañeros</li>
+              <li>Behind the scenes del proceso de entrega</li>
+            </ul>
+          </div>
+          <div class="tip-card">
+            <h4>📸 Instagram — Qué publicar</h4>
+            <ul>
+              <li>Foto estética de los productos con fondo colorido</li>
+              <li>Stories con "¿Cuál prefieres?" encuesta</li>
+              <li>Menú del día cada mañana en Stories</li>
+              <li>Reels rápidos de 15s con música viral</li>
+              <li>Testimonios y fotos de clientes felices</li>
+            </ul>
+          </div>
+          <div class="tip-card">
+            <h4>💬 WhatsApp — Cómo usarlo</h4>
+            <ul>
+              <li>Canal de difusión: menú diario a las 7am</li>
+              <li>Respuesta rápida: usar el link directo del sitio</li>
+              <li>Stickers propios de Tu Antojito Mix</li>
+              <li>Estado de WhatsApp con los productos del día</li>
+              <li>Anunciar nuevos productos primero por WA</li>
+            </ul>
+          </div>
+          <div class="tip-card">
+            <h4>🚀 Estrategia General</h4>
+            <ul>
+              <li>Publica TODOS LOS DÍAS para el algoritmo</li>
+              <li>Usa hashtags: #recreo #snacks #antojito #colegio</li>
+              <li>Haz colaboraciones con compañeros influencers</li>
+              <li>Crea descuentos exclusivos para seguidores</li>
+              <li>Desafíos: "¿Puedes comer todo sin agua?"</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<script>
+  window.GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxbuVvI7KgWSA5HPYjtxzHHbXYMsx-xMMH8OLQ-OPJ5aZcXoLGT9q2MGk7UAWhdIgRwgQ/exec";
+</script>
+<script src="ap.js"></script>
+<script>
+
+let todosLosPedidos = [];
+let catalogoData    = {};
+
+/* ── Nav ────────────────────────────────────────── */
+function navTo(page, el) {
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  el.classList.add("active");
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById("page-"+page).classList.add("active");
+  const titles = {
+    overview:"📊 Resumen del Día", pedidos:"🛒 Gestión de Pedidos",
+    catalogo:"🍪 Catálogo & Stock", rrss:"📲 Redes Sociales"
+  };
+  const subs = {
+    overview:"Métricas y pedidos recientes", pedidos:"Actualiza estados y revisa cursos",
+    catalogo:"Inventario y reabastecer stock", rrss:"Estrategia para TikTok, Instagram y WhatsApp"
+  };
+  document.getElementById("pageTitle").textContent = titles[page]||"";
+  document.getElementById("pageSub").textContent   = subs[page]||"";
+  if (page === "pedidos")  loadAllPedidos();
+  if (page === "catalogo") loadCatalogo();
+}
+
+/* ── Load Dashboard ─────────────────────────────── */
+function loadDashboard() {
+  const btn = document.getElementById("refreshBtn");
+  btn.classList.add("spin");
+  GAS.getMetricas()
+    .then(m => {
+      btn.classList.remove("spin");
+      if (!m || !m.ok) { toast("Error cargando métricas", "err"); return; }
+      // KPIs
+      document.getElementById("kpiVentas").innerHTML    = "$"+parseInt(m.ventasMes||0).toLocaleString("es-CL");
+      document.getElementById("kpiPedidos").textContent  = m.totalPedidos||0;
+      document.getElementById("kpiPendientes").textContent = m.pendientes||0;
+      document.getElementById("kpiEntregados").textContent = m.aceptados||0;
+      // estados strip
+      document.getElementById("stPend").textContent = m.pendientes||0;
+      document.getElementById("stAcep").textContent = m.aceptados||0;
+      document.getElementById("stCam").textContent  = m.enCamino||0;
+      document.getElementById("stCanc").textContent = m.cancelados||0;
+      // stock crítico
+      if (m.stockCritico && m.stockCritico.length > 0) {
+        document.getElementById("stockCriticoAlert").style.display = "block";
+        document.getElementById("stockCriticoList").textContent =
+          m.stockCritico.map(p => `${p.nombre} (${p.stock} restantes)`).join(" · ");
+      }
+      // pedidos recientes
+      if (m.pedidosRecientes) {
+        todosLosPedidos = m.pedidosRecientes;
+        renderPedidosTable(m.pedidosRecientes, "pedidosBody", false);
+      }
+    })
+    .catch(err => { btn.classList.remove("spin"); toast("Error: "+err.message, "err"); });
+}
+
+/* ── Pedidos ────────────────────────────────────── */
+function loadAllPedidos() {
+  document.getElementById("allPedidosBody").innerHTML = '<tr><td colspan="9" class="loading-row">⏳ Cargando…</td></tr>';
+  GAS.getPedidos(200)
+    .then(data => {
+      todosLosPedidos = Array.isArray(data) ? data : [];
+      filtrarPedidos();
+    })
+    .catch(err => toast("Error: "+err.message, "err"));
+}
+
+function filtrarPedidos() {
+  const filtro = document.getElementById("filtroEstado")?.value || "";
+  const filtrados = filtro ? todosLosPedidos.filter(p => String(p["Estado"]||"")===filtro) : todosLosPedidos;
+  renderPedidosTable(filtrados, "allPedidosBody", true);
+}
+
+function renderPedidosTable(pedidos, tbodyId, showAll) {
+  const tbody = document.getElementById(tbodyId);
+  if (!pedidos || !pedidos.length) {
+    tbody.innerHTML = `<tr><td colspan="${showAll?9:8}" class="loading-row"><div class="empty-state"><div class="emo">📭</div><p>No hay pedidos aún</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = pedidos.map(p => {
+    const est = String(p["Estado"]||"Pendiente");
+    const total = parseInt(p["Total CLP"]||0);
+    const detalle = String(p["Detalle"]||"").substring(0,60)+(String(p["Detalle"]||"").length>60?"…":"");
+    const obs = String(p["Observaciones"]||"");
+    // Extraer curso de observaciones
+    const cursoMatch = obs.match(/Curso:\s*([^|]+)/);
+    const cursoText = cursoMatch ? cursoMatch[1].trim() : (p["Curso"]||"—");
+
+    const badgeClass = {
+      "Pendiente":"be-pendiente","Aceptado":"be-aceptado",
+      "En camino":"be-encamino","Entregado":"be-entregado","Cancelado":"be-cancelado"
+    }[est] || "be-pendiente";
+    const badgeIcon = {"Pendiente":"⏳","Aceptado":"✅","En camino":"🛵","Entregado":"🎁","Cancelado":"❌"}[est]||"❓";
+    const delivery = String(p["¿Delivery?"]||"No");
+
+    let cols = `
+      <td style="font-family:'Fredoka One',cursive;color:var(--pink);font-size:13px">${p["ID Pedido"]||"—"}</td>
+      <td><div style="font-weight:800">${p["Nombre Cliente"]||"—"}</div><div style="font-size:11px;color:var(--text-m)">${p["Teléfono"]||""}</div></td>
+      <td><span class="curso-chip">🎒 ${cursoText}</span></td>`;
+    if (showAll) {
+      cols += `<td style="font-size:12px">${delivery==="Sí"?"🛵 Sí":"🏫 No"}</td>
+               <td style="font-size:11px;color:rgba(255,255,255,.65);max-width:180px">${detalle}</td>`;
+    }
+    cols += `
+      <td style="font-family:'Fredoka One',cursive;color:var(--green)">$${total.toLocaleString("es-CL")}</td>
+      <td style="font-size:12px">${p["Método Pago"]||"Efectivo"}</td>
+      <td><span class="badge-estado ${badgeClass}">${badgeIcon} ${est}</span></td>
+      <td>
+        <select class="sel-estado" onchange="cambiarEstado('${p["ID Pedido"]}',this.value)">
+          <option value="">— Cambiar —</option>
+          <option value="Aceptado">✅ Aceptado</option>
+          <option value="En camino">🛵 En camino</option>
+          <option value="Entregado">🎁 Entregado</option>
+          <option value="Cancelado">❌ Cancelado</option>
+        </select>
+      </td>`;
+    if (!showAll) cols += `<td style="font-size:11px;color:var(--text-m)">${p["Fecha"]||"—"}</td>`;
+    return `<tr>${cols}</tr>`;
+  }).join("");
+}
+
+function cambiarEstado(id, estado) {
+  if (!estado) return;
+  GAS.actualizarEstado(id, estado)
+    .then(r => {
+      if (r && r.ok) {
+        toast("✅ Pedido "+id+" → "+estado, "ok");
+        setTimeout(loadDashboard, 800);
+      } else {
+        toast("Error actualizando estado", "err");
+      }
+    })
+    .catch(err => toast("Error: "+err.message, "err"));
+}
+
+/* ── Catálogo ───────────────────────────────────── */
+function loadCatalogo() {
+  document.getElementById("catalogoBody").innerHTML = '<tr><td colspan="6" class="loading-row">⏳ Cargando catálogo…</td></tr>';
+  GAS.getCatalogo()
+    .then(cat => {
+      catalogoData = cat||{};
+      renderCatalogo(cat);
+    })
+    .catch(err => toast("Error: "+err.message, "err"));
+}
+
+function renderCatalogo(cat) {
+  const tbody = document.getElementById("catalogoBody");
+  if (!cat || !Object.keys(cat).length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="loading-row">Sin productos en el catálogo</td></tr>';
+    return;
+  }
+  let rows = "";
+  Object.keys(cat).forEach(categoria => {
+    Object.keys(cat[categoria]).forEach(id => {
+      const p   = cat[categoria][id];
+      const stk = parseInt(p.stock)||0;
+      const sc  = stk<=0?"stk-out":stk<=5?"stk-low":"stk-ok";
+      const si  = stk<=0?"⛔":stk<=5?"⚠️":"✅";
+      rows += `
+        <tr>
+          <td><div style="font-weight:800">${p.nombre}</div></td>
+          <td><span style="background:rgba(255,190,11,.15);border:1px solid rgba(255,190,11,.3);color:var(--yellow);padding:3px 10px;border-radius:100px;font-size:11px;font-weight:800">${categoria}</span></td>
+          <td style="font-family:'Fredoka One',cursive;color:var(--green)">$${parseInt(p.precio).toLocaleString("es-CL")}</td>
+          <td class="${sc}">${si} ${stk} unidades</td>
+          <td>${stk<=0?'<span style="color:var(--pink);font-weight:800">Agotado</span>':stk<=5?'<span style="color:var(--yellow);font-weight:800">Stock bajo</span>':'<span style="color:var(--green);font-weight:800">OK</span>'}</td>
+          <td>
+            <button class="restock-btn" onclick="reabastecer('${id}','${p.nombre}')">+ Reabastecer</button>
+          </td>
+        </tr>`;
+    });
+  });
+  tbody.innerHTML = rows;
+}
+
+function reabastecer(id, nombre) {
+  const cant = prompt("¿Cuántas unidades agregar a "+nombre+"?");
+  if (!cant || isNaN(parseInt(cant))) return;
+  GAS.reabastecerStock(id, parseInt(cant))
+    .then(r => {
+      if (r && r.ok) {
+        toast("✅ "+nombre+" → "+r.stockActual+" unidades", "ok");
+        loadCatalogo();
+      } else {
+        toast("Error reabasteciendo", "err");
+      }
+    })
+    .catch(err => toast("Error: "+err.message, "err"));
+}
+
+/* ── Toast ──────────────────────────────────────── */
+function toast(msg, tipo) {
+  const w = document.getElementById("toasts");
+  const d = document.createElement("div");
+  d.className = "toast " + (tipo||"");
+  d.innerHTML = (tipo==="ok"?"✅":tipo==="err"?"❌":"ℹ️") + " <span>"+msg+"</span>";
+  w.appendChild(d);
+  setTimeout(() => { d.style.transition="opacity .4s"; d.style.opacity="0"; setTimeout(()=>d.remove(),400); }, 4000);
+}
+
+/* ── Init ────────────────────────────────────────── */
+window.addEventListener("DOMContentLoaded", loadDashboard);
+</script>
+</body>
+</html>
