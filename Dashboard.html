@@ -1,9 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dashboard — Tu Antojito Mix 🍭</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#FF8C00">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Antojito Mix 🍭">
+  <meta name="description" content="Panel de administración — Tu Antojito Mix.">
+  <link rel="apple-touch-icon" href="https://github.com/tuantojitomix/Store/blob/main/Logo%20Mix.png?raw=true">
+  <link rel="icon" type="image/png" href="https://github.com/tuantojitomix/Store/blob/main/Logo%20Mix.png?raw=true">
+  <meta property="og:title" content="Admin — Antojito Mix 🍭">
+  <meta property="og:description" content="Panel de administración de pedidos.">
+  <meta property="og:image" content="https://github.com/tuantojitomix/Store/blob/main/Logo%20Mix.png?raw=true">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>Dashboard — Tu Antojito Mix 🍭</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
 <style>
@@ -178,7 +190,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:#fff;min-height:
 <aside class="sidebar">
   <div class="sidebar-head">
     <div class="sidebar-logo">
-      <img src="https://i.postimg.cc/CLg9RQz4/Logo-Mix.png" alt="Logo" onerror="this.style.display='none'">
+      <img src="https://lh3.googleusercontent.com/d/1UUFt8lqzjabHY603Zn_0iO7CGuqjTzY9" alt="Logo" onerror="this.style.display='none'">
       <div>
         <div class="sidebar-title"><em>Tu Antojito</em> Mix</div>
         <div class="sidebar-sub">Panel de Administración</div>
@@ -425,7 +437,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:#fff;min-height:
 </main>
 
 <script>
-  window.GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxbuVvI7KgWSA5HPYjtxzHHbXYMsx-xMMH8OLQ-OPJ5aZcXoLGT9q2MGk7UAWhdIgRwgQ/exec";
+  window.GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz6iO1zSDivhXGwJ5MugHundTeFPCFTrLUPUvs1P-ikQYoV7KpiAlZj2SzIonp2Cfcbvg/exec";
 </script>
 <script src="ap.js"></script>
 <script>
@@ -512,7 +524,21 @@ function renderPedidosTable(pedidos, tbodyId, showAll) {
   tbody.innerHTML = pedidos.map(p => {
     const est = String(p["Estado"]||"Pendiente");
     const total = parseInt(p["Total CLP"]||0);
-    const detalle = String(p["Detalle"]||"").substring(0,60)+(String(p["Detalle"]||"").length>60?"…":"");
+    // Desglose de ítems — cada línea = "Nx Producto ($precio) = $sub"
+  const detalleRaw = String(p["Detalle"]||"");
+  const detalleItems = detalleRaw.split(/\n|\|/).map(l=>l.trim()).filter(Boolean);
+  const detalleHtml = detalleItems.length
+    ? `<ul style="list-style:none;padding:0;margin:0;">${detalleItems.map(it=>{
+        const m = it.match(/^(\d+)x\s+(.+?)\s+\(\$([\d.,]+)\)/);
+        return m
+          ? `<li style="display:flex;align-items:center;gap:6px;padding:2px 0;font-size:11px;">
+               <span style="background:rgba(131,56,236,.25);color:#c084fc;border-radius:6px;padding:1px 6px;font-weight:800;min-width:22px;text-align:center;">${m[1]}x</span>
+               <span style="color:rgba(255,255,255,.85);font-weight:700;">${m[2]}</span>
+               <span style="color:var(--text-m);margin-left:auto;">$${m[3]}</span>
+             </li>`
+          : `<li style="font-size:11px;color:rgba(255,255,255,.6);">${it}</li>`;
+      }).join("")}</ul>`
+    : '<span style="font-size:11px;color:var(--text-m);">—</span>';
     const obs = String(p["Observaciones"]||"");
     // Extraer curso de observaciones
     const cursoMatch = obs.match(/Curso:\s*([^|]+)/);
@@ -531,7 +557,7 @@ function renderPedidosTable(pedidos, tbodyId, showAll) {
       <td><span class="curso-chip">🎒 ${cursoText}</span></td>`;
     if (showAll) {
       cols += `<td style="font-size:12px">${delivery==="Sí"?"🛵 Sí":"🏫 No"}</td>
-               <td style="font-size:11px;color:rgba(255,255,255,.65);max-width:180px">${detalle}</td>`;
+               <td style="max-width:220px;vertical-align:top;padding:10px 8px;">${detalleHtml}</td>`;
     }
     cols += `
       <td style="font-family:'Fredoka One',cursive;color:var(--green)">$${total.toLocaleString("es-CL")}</td>
