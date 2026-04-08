@@ -509,12 +509,6 @@ function loadAllPedidos() {
     .catch(err => toast("Error: "+err.message, "err"));
 }
 
-function filtrarPedidos() {
-  const filtro = document.getElementById("filtroEstado")?.value || "";
-  const filtrados = filtro ? todosLosPedidos.filter(p => String(p["Estado"]||"")===filtro) : todosLosPedidos;
-  renderPedidosTable(filtrados, "allPedidosBody", true);
-}
-
 function renderPedidosTable(pedidos, tbodyId, showAll) {
   const tbody = document.getElementById(tbodyId);
   if (!pedidos || !pedidos.length) {
@@ -525,61 +519,58 @@ function renderPedidosTable(pedidos, tbodyId, showAll) {
   tbody.innerHTML = pedidos.map(p => {
     const est = String(p["Estado"] || "Pendiente");
     const total = parseInt(p["Total CLP"] || 0);
-    
-    // Procesar detalle (formato esperado: "1x Doritos ($600) = $600")
-    const detalleRaw = String(p["Detalle"] || "");
-    const detalleLineas = detalleRaw.split("\n").map(l => l.trim()).filter(Boolean);
-    const detalleHtml = detalleLineas.length
-      ? detalleLineas.map(linea => {
-          const m = linea.match(/^(\d+)x\s+(.+?)\s*\(\$([^)]+)\)\s*=\s*\$(.+)$/);
-          if (m) {
-            return `<div style="display:flex;align-items:center;gap:5px;padding:3px 0;">
-                      <span style="background:rgba(131,56,236,.3);color:#c084fc;border-radius:5px;padding:1px 7px;font-size:11px;font-weight:800;">${m[1]}x</span>
-                      <span style="font-size:12px;font-weight:700;flex:1;">${m[2]}</span>
-                      <span style="font-size:11px;color:var(--green);font-weight:700;">$${m[3]}</span>
-                    </div>`;
-          }
-          return `<div style="font-size:11px;color:rgba(255,255,255,.6);padding:2px 0;">${linea}</div>`;
-        }).join("")
-      : '<span style="font-size:11px;color:var(--text-m);">—</span>';
 
-    // Extraer curso de Observaciones
+    // --- PROCESAR DETALLE (formato: "1x Doritos ($600) = $600" o "1x Doritos ($600)") ---
+    const detalleRaw = String(p["Detalle"] || "");
+    const lineas = detalleRaw.split(/\n|\|/).map(l => l.trim()).filter(Boolean);
+    let detalleHtml = '<span style="font-size:11px;color:var(--text-m);">—</span>';
+
+    if (lineas.length) {
+      const itemsHtml = lineas.map(linea => {
+        // Regex flexible: captura cantidad, nombre, precio (sin y con = $...)
+        let m = linea.match(/^(\d+)x\s+(.+?)\s*\(\$([\d.,]+)\)(?:\s*=\s*\$[\d.,]+)?$/);
+        if (!m) {
+          // intentar con otro patrón (ej: "Doritos x1 $600")
+          m = linea.match(/(.+?)\s*x\s*(\d+)\s*\$([\d.,]+)/i);
+          if (m) return `<div style="font-size:11px;padding:2px 0;">${m[2]}x ${m[1]} <span style="color:var(--green);">$${m[3]}</span></div>`;
+        }
+        if (m) {
+          const cantidad = m[1];
+          const nombre = m[2].trim();
+          const precio = m[3];
+          return `<div style="display:flex;align-items:center;gap:5px;padding:3px 0;">
+                    <span style="background:rgba(131,56,236,.3);color:#c084fc;border-radius:5px;padding:1px 7px;font-size:11px;font-weight:800;">${cantidad}x</span>
+                    <span style="font-size:12px;font-weight:700;flex:1;">${nombre}</span>
+                    <span style="font-size:11px;color:var(--green);font-weight:700;">$${precio}</span>
+                  </div>`;
+        }
+        // fallback: mostrar línea sin formato
+        return `<div style="font-size:11px;color:rgba(255,255,255,.6);padding:2px 0;">${linea}</div>`;
+      }).join("");
+      detalleHtml = `<div style="display:flex;flex-direction:column;gap:2px;">${itemsHtml}</div>`;
+    }
+
+    // Extraer curso desde Observaciones (si existe)
     const obs = String(p["Observaciones"] || "");
     const cursoMatch = obs.match(/Curso:\s*([^|]+)/);
     const cursoText = cursoMatch ? cursoMatch[1].trim() : (p["Curso"] || "—");
 
     const badgeClass = {
-      "Pendiente": "be-pendiente",
-      "Aceptado": "be-aceptado",
-      "En camino": "be-encamino",
-      "Entregado": "be-entregado",
-      "Cancelado": "be-cancelado"
+      "Pendiente": "be-pendiente", "Aceptado": "be-aceptado",
+      "En camino": "be-encamino", "Entregado": "be-entregado", "Cancelado": "be-cancelado"
     }[est] || "be-pendiente";
-
-    const badgeIcon = {
-      "Pendiente": "⏳",
-      "Aceptado": "✅",
-      "En camino": "🛵",
-      "Entregado": "🎁",
-      "Cancelado": "❌"
-    }[est] || "❓";
-
+    const badgeIcon = { "Pendiente": "⏳", "Aceptado": "✅", "En camino": "🛵", "Entregado": "🎁", "Cancelado": "❌" }[est] || "❓";
     const delivery = String(p["¿Delivery?"] || "No");
 
-    // Construcción de columnas
     let cols = `
       <td style="font-family:'Fredoka One',cursive;color:var(--pink);font-size:13px">${p["ID Pedido"] || "—"}</td>
       <td><div style="font-weight:800">${p["Nombre Cliente"] || "—"}</div><div style="font-size:11px;color:var(--text-m)">${p["Teléfono"] || ""}</div></td>
       <td><span class="curso-chip">🎒 ${cursoText}</span></td>
     `;
-
     if (showAll) {
-      cols += `
-        <td style="font-size:12px">${delivery === "Sí" ? "🛵 Sí" : "🏫 No"}</td>
-        <td style="max-width:220px;vertical-align:top;padding:10px 8px;">${detalleHtml}</td>
-      `;
+      cols += `<td style="font-size:12px">${delivery === "Sí" ? "🛵 Sí" : "🏫 No"}</td>
+               <td style="max-width:220px;vertical-align:top;padding:10px 8px;">${detalleHtml}</td>`;
     }
-
     cols += `
       <td style="font-family:'Fredoka One',cursive;color:var(--green)">$${total.toLocaleString("es-CL")}</td>
       <td style="font-size:12px">${p["Método Pago"] || "Efectivo"}</td>
@@ -594,15 +585,10 @@ function renderPedidosTable(pedidos, tbodyId, showAll) {
         </select>
       </td>
     `;
-
-    if (!showAll) {
-      cols += `<td style="font-size:11px;color:var(--text-m)">${p["Fecha"] || "—"}</td>`;
-    }
-
+    if (!showAll) cols += `<td style="font-size:11px;color:var(--text-m)">${p["Fecha"] || "—"}</td>`;
     return `<tr>${cols}</tr>`;
   }).join("");
 }
-
 function cambiarEstado(id, estado) {
   if (!estado) return;
   GAS.actualizarEstado(id, estado)
