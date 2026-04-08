@@ -504,9 +504,16 @@ function loadAllPedidos() {
   GAS.getPedidos(200)
     .then(data => {
       todosLosPedidos = Array.isArray(data) ? data : [];
-      filtrarPedidos();
+      filtrarPedidos();  // ← esta línea ya existe
     })
     .catch(err => toast("Error: "+err.message, "err"));
+}
+
+// 👇 AGREGAR ESTA FUNCIÓN
+function filtrarPedidos() {
+  const filtro = document.getElementById("filtroEstado")?.value || "";
+  const filtrados = filtro ? todosLosPedidos.filter(p => String(p["Estado"] || "") === filtro) : todosLosPedidos;
+  renderPedidosTable(filtrados, "allPedidosBody", true);
 }
 
 function renderPedidosTable(pedidos, tbodyId, showAll) {
