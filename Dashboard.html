@@ -518,73 +518,87 @@ function filtrarPedidos() {
 function renderPedidosTable(pedidos, tbodyId, showAll) {
   const tbody = document.getElementById(tbodyId);
   if (!pedidos || !pedidos.length) {
-    tbody.innerHTML = `<tr><td colspan="${showAll?9:8}" class="loading-row"><div class="empty-state"><div class="emo">📭</div><p>No hay pedidos aún</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${showAll ? 9 : 8}" class="loading-row"><div class="empty-state"><div class="emo">📭</div><p>No hay pedidos aún</p></div></td></tr>`;
     return;
   }
+
   tbody.innerHTML = pedidos.map(p => {
-    const est = String(p["Estado"]||"Pendiente");
-    const total = parseInt(p["Total CLP"]||0);
-    // Desglose de ítems — cada línea = "Nx Producto ($precio) = $sub"
-  const detalleRaw   = String(p["Detalle"] || "");
-const detalleLineas = detalleRaw.split("\n").map(l => l.trim()).filter(Boolean);
-const detalleHtml   = detalleLineas.length
-  ? detalleLineas.map(linea => {
-      // Formato guardado: "1x Doritos ($600) = $600"
-      const m = linea.match(/^(\d+)x\s+(.+?)\s*\(\$([^)]+)\)\s*=\s*\$(.+)$/);
-      if (m) {
-        return `<div style="display:flex;align-items:center;gap:5px;padding:3px 0;list-style:none;">
-          <span style="background:rgba(131,56,236,.3);color:#c084fc;border-radius:5px;
-                       padding:1px 7px;font-size:11px;font-weight:800;flex-shrink:0;">${m[1]}x</span>
-          <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.9);flex:1;">${m[2]}</span>
-          <span style="font-size:11px;color:var(--green);font-weight:700;flex-shrink:0;">$${m[3]}</span>
-        </div>`;
-      }
-      // Fallback: mostrar la línea tal cual
-      return `<div style="font-size:11px;color:rgba(255,255,255,.6);padding:2px 0;list-style:none;">${linea}</div>`;
-    }).join("")
-  : '<span style="font-size:11px;color:var(--text-m);">—</span>';
-          ? `<li style="display:flex;align-items:center;gap:6px;padding:2px 0;font-size:11px;">
-               <span style="background:rgba(131,56,236,.25);color:#c084fc;border-radius:6px;padding:1px 6px;font-weight:800;min-width:22px;text-align:center;">${m[1]}x</span>
-               <span style="color:rgba(255,255,255,.85);font-weight:700;">${m[2]}</span>
-               <span style="color:var(--text-m);margin-left:auto;">$${m[3]}</span>
-             </li>`
-          : `<li style="font-size:11px;color:rgba(255,255,255,.6);">${it}</li>`;
-      }).join("")}</ul>`
-    : '<span style="font-size:11px;color:var(--text-m);">—</span>';
-    const obs = String(p["Observaciones"]||"");
-    // Extraer curso de observaciones
+    const est = String(p["Estado"] || "Pendiente");
+    const total = parseInt(p["Total CLP"] || 0);
+    
+    // Procesar detalle (formato esperado: "1x Doritos ($600) = $600")
+    const detalleRaw = String(p["Detalle"] || "");
+    const detalleLineas = detalleRaw.split("\n").map(l => l.trim()).filter(Boolean);
+    const detalleHtml = detalleLineas.length
+      ? detalleLineas.map(linea => {
+          const m = linea.match(/^(\d+)x\s+(.+?)\s*\(\$([^)]+)\)\s*=\s*\$(.+)$/);
+          if (m) {
+            return `<div style="display:flex;align-items:center;gap:5px;padding:3px 0;">
+                      <span style="background:rgba(131,56,236,.3);color:#c084fc;border-radius:5px;padding:1px 7px;font-size:11px;font-weight:800;">${m[1]}x</span>
+                      <span style="font-size:12px;font-weight:700;flex:1;">${m[2]}</span>
+                      <span style="font-size:11px;color:var(--green);font-weight:700;">$${m[3]}</span>
+                    </div>`;
+          }
+          return `<div style="font-size:11px;color:rgba(255,255,255,.6);padding:2px 0;">${linea}</div>`;
+        }).join("")
+      : '<span style="font-size:11px;color:var(--text-m);">—</span>';
+
+    // Extraer curso de Observaciones
+    const obs = String(p["Observaciones"] || "");
     const cursoMatch = obs.match(/Curso:\s*([^|]+)/);
-    const cursoText = cursoMatch ? cursoMatch[1].trim() : (p["Curso"]||"—");
+    const cursoText = cursoMatch ? cursoMatch[1].trim() : (p["Curso"] || "—");
 
     const badgeClass = {
-      "Pendiente":"be-pendiente","Aceptado":"be-aceptado",
-      "En camino":"be-encamino","Entregado":"be-entregado","Cancelado":"be-cancelado"
+      "Pendiente": "be-pendiente",
+      "Aceptado": "be-aceptado",
+      "En camino": "be-encamino",
+      "Entregado": "be-entregado",
+      "Cancelado": "be-cancelado"
     }[est] || "be-pendiente";
-    const badgeIcon = {"Pendiente":"⏳","Aceptado":"✅","En camino":"🛵","Entregado":"🎁","Cancelado":"❌"}[est]||"❓";
-    const delivery = String(p["¿Delivery?"]||"No");
 
+    const badgeIcon = {
+      "Pendiente": "⏳",
+      "Aceptado": "✅",
+      "En camino": "🛵",
+      "Entregado": "🎁",
+      "Cancelado": "❌"
+    }[est] || "❓";
+
+    const delivery = String(p["¿Delivery?"] || "No");
+
+    // Construcción de columnas
     let cols = `
-      <td style="font-family:'Fredoka One',cursive;color:var(--pink);font-size:13px">${p["ID Pedido"]||"—"}</td>
-      <td><div style="font-weight:800">${p["Nombre Cliente"]||"—"}</div><div style="font-size:11px;color:var(--text-m)">${p["Teléfono"]||""}</div></td>
-      <td><span class="curso-chip">🎒 ${cursoText}</span></td>`;
+      <td style="font-family:'Fredoka One',cursive;color:var(--pink);font-size:13px">${p["ID Pedido"] || "—"}</td>
+      <td><div style="font-weight:800">${p["Nombre Cliente"] || "—"}</div><div style="font-size:11px;color:var(--text-m)">${p["Teléfono"] || ""}</div></td>
+      <td><span class="curso-chip">🎒 ${cursoText}</span></td>
+    `;
+
     if (showAll) {
-      cols += `<td style="font-size:12px">${delivery==="Sí"?"🛵 Sí":"🏫 No"}</td>
-               <td style="max-width:220px;vertical-align:top;padding:10px 8px;">${detalleHtml}</td>`;
+      cols += `
+        <td style="font-size:12px">${delivery === "Sí" ? "🛵 Sí" : "🏫 No"}</td>
+        <td style="max-width:220px;vertical-align:top;padding:10px 8px;">${detalleHtml}</td>
+      `;
     }
+
     cols += `
       <td style="font-family:'Fredoka One',cursive;color:var(--green)">$${total.toLocaleString("es-CL")}</td>
-      <td style="font-size:12px">${p["Método Pago"]||"Efectivo"}</td>
+      <td style="font-size:12px">${p["Método Pago"] || "Efectivo"}</td>
       <td><span class="badge-estado ${badgeClass}">${badgeIcon} ${est}</span></td>
       <td>
-        <select class="sel-estado" onchange="cambiarEstado('${p["ID Pedido"]}',this.value)">
+        <select class="sel-estado" onchange="cambiarEstado('${p["ID Pedido"]}', this.value)">
           <option value="">— Cambiar —</option>
           <option value="Aceptado">✅ Aceptado</option>
           <option value="En camino">🛵 En camino</option>
           <option value="Entregado">🎁 Entregado</option>
           <option value="Cancelado">❌ Cancelado</option>
         </select>
-      </td>`;
-    if (!showAll) cols += `<td style="font-size:11px;color:var(--text-m)">${p["Fecha"]||"—"}</td>`;
+      </td>
+    `;
+
+    if (!showAll) {
+      cols += `<td style="font-size:11px;color:var(--text-m)">${p["Fecha"] || "—"}</td>`;
+    }
+
     return `<tr>${cols}</tr>`;
   }).join("");
 }
