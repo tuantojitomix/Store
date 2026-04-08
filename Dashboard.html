@@ -525,12 +525,24 @@ function renderPedidosTable(pedidos, tbodyId, showAll) {
     const est = String(p["Estado"]||"Pendiente");
     const total = parseInt(p["Total CLP"]||0);
     // Desglose de ítems — cada línea = "Nx Producto ($precio) = $sub"
-  const detalleRaw = String(p["Detalle"]||"");
-  const detalleItems = detalleRaw.split(/\n|\|/).map(l=>l.trim()).filter(Boolean);
-  const detalleHtml = detalleItems.length
-    ? `<ul style="list-style:none;padding:0;margin:0;">${detalleItems.map(it=>{
-        const m = it.match(/^(\d+)x\s+(.+?)\s+\(\$([\d.,]+)\)/);
-        return m
+  const detalleRaw   = String(p["Detalle"] || "");
+const detalleLineas = detalleRaw.split("\n").map(l => l.trim()).filter(Boolean);
+const detalleHtml   = detalleLineas.length
+  ? detalleLineas.map(linea => {
+      // Formato guardado: "1x Doritos ($600) = $600"
+      const m = linea.match(/^(\d+)x\s+(.+?)\s*\(\$([^)]+)\)\s*=\s*\$(.+)$/);
+      if (m) {
+        return `<div style="display:flex;align-items:center;gap:5px;padding:3px 0;list-style:none;">
+          <span style="background:rgba(131,56,236,.3);color:#c084fc;border-radius:5px;
+                       padding:1px 7px;font-size:11px;font-weight:800;flex-shrink:0;">${m[1]}x</span>
+          <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.9);flex:1;">${m[2]}</span>
+          <span style="font-size:11px;color:var(--green);font-weight:700;flex-shrink:0;">$${m[3]}</span>
+        </div>`;
+      }
+      // Fallback: mostrar la línea tal cual
+      return `<div style="font-size:11px;color:rgba(255,255,255,.6);padding:2px 0;list-style:none;">${linea}</div>`;
+    }).join("")
+  : '<span style="font-size:11px;color:var(--text-m);">—</span>';
           ? `<li style="display:flex;align-items:center;gap:6px;padding:2px 0;font-size:11px;">
                <span style="background:rgba(131,56,236,.25);color:#c084fc;border-radius:6px;padding:1px 6px;font-weight:800;min-width:22px;text-align:center;">${m[1]}x</span>
                <span style="color:rgba(255,255,255,.85);font-weight:700;">${m[2]}</span>
